@@ -1,8 +1,11 @@
-from django.contrib.gis.measure import D
-from django.core.exceptions import ImproperlyConfigured
+from django.contrib.gis.measure import D as _D
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models
 from django.db.models import signals
 from django.utils.six import with_metaclass
+from django.utils.translation import ugettext as _
+
+from . import forms, validators
 
 import re
 
@@ -24,6 +27,15 @@ try:
     basestring
 except NameError:
     basestring = (str, unicode)
+
+class D(_D):
+    UNITS = _D.UNITS
+    UNITS.update({
+        'u': 0.04445
+    })
+
+    def __unicode__(self):
+        return "%d%s" % (getattr(self, self._default_unit), self._default_unit)
 
 class DistanceFieldDescriptor(object):
     def __init__(self, field):
@@ -60,8 +72,7 @@ class DistanceField(models.Field):
     ALPHA_REGEX = re.compile('([\s\-\_a-z]+)$', re.I)
 
     descriptor_class = DistanceFieldDescriptor
-
-    #TODO: Custom form field?
+    default_validators = [validators.valid_unit_type]
 
     def __init__(self, decimal_places=4, max_digits=12,
                  unit_field=None, unit='m', *args, **kwargs):
@@ -70,6 +81,11 @@ class DistanceField(models.Field):
         self.unit_field = unit_field
         self.default_unit = unit
         super(DistanceField, self).__init__(*args, **kwargs)
+
+    def formfield(self, form_class=None, choices_form_class=None, **kwargs):
+        return super(DistanceField, self).formfield(
+            form_class=forms.DistanceField,
+            choices_form_class=choices_form_class, **kwargs)
 
     def get_internal_type(self):
         return 'DecimalField'
@@ -81,6 +97,7 @@ class DistanceField(models.Field):
 
     @staticmethod
     def parse_string(value, default_units='m'):
+        if not value: return None, False
         units = DistanceField.ALPHA_REGEX.findall(value)
         has_units = False
         if not units:
@@ -90,7 +107,10 @@ class DistanceField(models.Field):
             has_units = True
             units = units[0].strip( )
             value = float(value.replace(units, ''))
-        return (D(**{D.unit_attname(units): value}), has_units)
+        try:
+            return (D(**{D.unit_attname(units): value}), has_units)
+        except:
+            return None, False
 
     @staticmethod
     def distance_to_parts(distance):
@@ -140,7 +160,9 @@ class DistanceField(models.Field):
                 self.max_digits, self.decimal_places)
 
     def get_prep_value(self, value):
-        if isinstance(value, basestring):
+        if value == None or value == '':
+            return None
+        elif isinstance(value, basestring):
             dist, has_units = DistanceField.parse_string(
                 value, self.default_unit)
         elif isinstance(value, D):
