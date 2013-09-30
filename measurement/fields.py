@@ -102,7 +102,10 @@ class DistanceField(models.Field):
         has_units = False
         if not units:
             units = default_units
-            value = float(value)
+            try:
+                value = float(value)
+            except:
+                return None, False
         else:
             has_units = True
             units = units[0].strip( )
