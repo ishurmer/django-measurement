@@ -29,13 +29,26 @@ except NameError:
     basestring = (str, unicode)
 
 class D(_D):
+    EXTRA_ALIASES = {}
+    EXTRA_UNITS = {}
+
+    ADDITIONAL_ALIASES = {
+        'in': 'inch',
+        '"': 'inch',
+        "'": 'foot'
+    }
     UNITS = _D.UNITS
     UNITS.update({
         'u': 0.04445
     })
+    ALIAS = _D.ALIAS
+    ALIAS.update(ADDITIONAL_ALIASES)
+
+    UNITS.update(EXTRA_UNITS)
+    ALIAS.update(EXTRA_ALIASES)
 
     def __unicode__(self):
-        return "%d%s" % (getattr(self, self._default_unit), self._default_unit)
+        return "%f%s" % (getattr(self, self._default_unit), self._default_unit)
 
 class DistanceFieldDescriptor(object):
     def __init__(self, field):
@@ -69,7 +82,7 @@ class DistanceFieldDescriptor(object):
 
 
 class DistanceField(models.Field):
-    ALPHA_REGEX = re.compile('([\s\-\_a-z]+)$', re.I)
+    ALPHA_REGEX = re.compile('([\s\-\_a-z\"\']+)$', re.I)
 
     descriptor_class = DistanceFieldDescriptor
     default_validators = [validators.valid_unit_type]

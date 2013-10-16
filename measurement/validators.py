@@ -8,7 +8,7 @@ def valid_unit_type(value):
     if not value: return
     if isinstance(value, string_types):
         r, f = DistanceField.parse_string(value)
-        if not r:
+        if r == None:
             units = filter(lambda g: '_' not in g, D.ALIAS.values())
             raise ValidationError(_("Please choose a valid distance unit from"+\
                 " %(units)s." % {'units': ", ".join(units)}))
