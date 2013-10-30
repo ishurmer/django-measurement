@@ -43,6 +43,8 @@ class D(_D):
     })
     ALIAS = _D.ALIAS
     ALIAS.update(ADDITIONAL_ALIASES)
+    LALIAS = _D.LALIAS
+    LALIAS.update(ADDITIONAL_ALIASES)
 
     UNITS.update(EXTRA_UNITS)
     ALIAS.update(EXTRA_ALIASES)
