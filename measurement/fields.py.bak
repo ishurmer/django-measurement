@@ -24,9 +24,9 @@ import re
 '''
 
 try:
-    str
+    basestring
 except NameError:
-    str = (str, str)
+    basestring = (str, unicode)
 
 class D(_D):
     EXTRA_ALIASES = {}
@@ -35,7 +35,7 @@ class D(_D):
     ADDITIONAL_ALIASES = {
         'in': 'inch',
         '"': 'inch',
-        "'": 'ft'
+        "'": 'foot'
     }
     UNITS = _D.UNITS
     UNITS.update({
@@ -74,7 +74,7 @@ class DistanceFieldDescriptor(object):
         parsed = False
         if value == None or value == '':
             instance.__dict__[self.field.name] = None
-        elif isinstance(value, str):
+        elif isinstance(value, basestring):
             dist, has_units = DistanceField.parse_string(
                 value, self.field.default_unit)
             instance.__dict__[self.field.name] = dist
@@ -164,9 +164,9 @@ class DistanceField(models.Field):
             else:
                 setattr(instance, self.unit_field, distance[1])
         except AttributeError:
-            raise ImproperlyConfigured("DistanceField %s has unit field " % (
+            raise ImproperlyConfigured, "DistanceField %s has unit field " % (
                 self.name)+"property %s specified, but field cannot be " % (
-                    self.unit_field) +"found on instance.")
+                    self.unit_field) +"found on instance."
 
     def pre_save(self, model_instance, add=False):
         self.update_unit_fields(model_instance)
@@ -186,7 +186,7 @@ class DistanceField(models.Field):
     def get_prep_value(self, value):
         if value == None or value == '':
             return None
-        elif isinstance(value, str):
+        elif isinstance(value, basestring):
             dist, has_units = DistanceField.parse_string(
                 value, self.default_unit)
         elif isinstance(value, D):
@@ -195,8 +195,8 @@ class DistanceField(models.Field):
             try:
                 return float(value)
             except:
-                raise ValueError('Comparison value must be a string, '+\
-                    'number, or distance object.')
+                raise ValueError, 'Comparison value must be a string, '+\
+                    'number, or distance object.'
 
         return getattr(dist, self.default_unit)
 

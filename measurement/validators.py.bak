@@ -12,6 +12,6 @@ def valid_unit_type(value):
         except ValueError:
             raise ValidationError(_("Please enter a valid distance."))
         if r == None:
-            units = [g for g in list(D.ALIAS.values()) if '_' not in g]
+            units = filter(lambda g: '_' not in g, D.ALIAS.values())
             raise ValidationError(_("Please choose a valid distance unit from"+\
                 " %(units)s." % {'units': ", ".join(units)}))

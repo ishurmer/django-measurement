@@ -7,7 +7,7 @@ import copy, json
 register = template.Library()
 
 UNITS = copy.copy(D.UNITS)
-for k, v in list(D.ALIAS.items( )):
+for k, v in D.ALIAS.items( ):
     UNITS[k] = UNITS[v]
 
 @register.simple_tag
